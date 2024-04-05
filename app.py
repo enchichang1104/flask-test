@@ -79,11 +79,9 @@ def extract_summary_from_text(text):
 def index():
     summary = None
     if request.method == "POST":
-        # 获取上传的文件
         uploaded_file = request.files["file"]
-        # 读取文件内容
         text = uploaded_file.read()
-        app.logger.debug(f"Text extracted from file: {text}")
+        print(text)  # 或者使用 logging 模块记录日志
         try:
             # 提取摘要
             summary = extract_summary_from_text(text)
