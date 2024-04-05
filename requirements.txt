@@ -1,2 +1,5 @@
 Flask
 Gunicorn
+openai==0.10.2
+PyPDF2==1.26.0
+requests==2.26.0
