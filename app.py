@@ -46,9 +46,8 @@
 
 
 import os
-import requests
-import logging
 import openai
+import PyPDF2
 from flask import Flask, render_template, request
 
 app = Flask(__name__)
@@ -56,21 +55,27 @@ app = Flask(__name__)
 # 设置您的 OpenAI API 密钥
 openai.api_key = "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"
 
-# 设置日志记录级别为 DEBUG，将日志记录到文件中
-logging.basicConfig(filename='app.log', level=logging.DEBUG)
-
-# ChatGPT API endpoint
-CHATGPT_API_ENDPOINT = "https://api.openai.com/v1/completions"
+# 设置上传文件的临时存储目录
+UPLOAD_FOLDER = 'uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # 函数用于从 PDF 文件中提取摘要
-def extract_summary_from_text(text):
+def extract_summary_from_pdf(file_path):
+    with open(file_path, "rb") as file:
+        reader = PyPDF2.PdfReader(file)
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text()
+
     # 调用 OpenAI 的摘要模型
     response = openai.Completion.create(
-        engine="text-davinci-002",
+        engine="gpt-3.5-turbo-instruct",
         prompt=text,
         max_tokens=200
     )
-    
+
     # 提取摘要
     summary = response.choices[0].text.strip()
     return summary
@@ -79,16 +84,14 @@ def extract_summary_from_text(text):
 def index():
     summary = None
     if request.method == "POST":
+        # 获取上传的文件
         uploaded_file = request.files["file"]
-        text = uploaded_file.read()
-        print(text)  # 或者使用 logging 模块记录日志
-        try:
+        if uploaded_file.filename != '':
+            # 保存上传的文件到服务器
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file.filename)
+            uploaded_file.save(file_path)
             # 提取摘要
-            summary = extract_summary_from_text(text)
-            app.logger.debug(f"Summary extracted: {summary}")
-        except Exception as e:
-            error_message = f"An error occurred while extracting summary: {str(e)}"
-            app.logger.error(error_message)  # 记录错误信息到日志
+            summary = extract_summary_from_pdf(file_path)
     return render_template("index.html", summary=summary)
 
 if __name__ == "__main__":
