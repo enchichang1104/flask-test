@@ -45,6 +45,62 @@
 #     app.run(debug=True)
 
 
+# import os
+# import openai
+# import PyPDF2
+# from flask import Flask, render_template, request
+
+# app = Flask(__name__)
+
+# # 设置您的 OpenAI API 密钥
+# openai.api_key = "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"
+
+# # 设置上传文件的临时存储目录
+# UPLOAD_FOLDER = 'uploads'
+# if not os.path.exists(UPLOAD_FOLDER):
+#     os.makedirs(UPLOAD_FOLDER)
+# app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# # 函数用于从 PDF 文件中提取摘要
+# def extract_summary_from_pdf(file_path):
+#     with open(file_path, "rb") as file:
+#         reader = PyPDF2.PdfReader(file)
+#         text = "給我檔案的重點摘要全英文的，且不要有亂碼"
+#         for page in reader.pages:
+#             text += page.extract_text()
+
+#     # 调用 OpenAI 的摘要模型
+#     response = openai.Completion.create(
+#         engine="gpt-3.5-turbo-instruct",
+#         prompt=text,
+#         max_tokens=2000
+#     )
+
+#     # 提取摘要
+#     summary = response.choices[0].text.strip()
+#     return summary
+
+# @app.route("/", methods=["GET", "POST"])
+# def index():
+#     summary = None
+#     if request.method == "POST":
+#         # 获取上传的文件
+#         uploaded_file = request.files["file"]
+#         if uploaded_file.filename != '':
+#             # 保存上传的文件到服务器
+#             file_path = os.path.join(app.config['UPLOAD_FOLDER'], uploaded_file.filename)
+#             uploaded_file.save(file_path)
+#             # 提取摘要
+#             summary = extract_summary_from_pdf(file_path)
+#     return render_template("index.html", summary=summary)
+
+# if __name__ == "__main__":
+#     app.run(debug=True)
+
+
+
+
+
 import os
 import openai
 import PyPDF2
@@ -65,7 +121,7 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 def extract_summary_from_pdf(file_path):
     with open(file_path, "rb") as file:
         reader = PyPDF2.PdfReader(file)
-        text = ""
+        text = "Please provide a summary of the content of this article, approximately 100 words in length"
         for page in reader.pages:
             text += page.extract_text()
 
@@ -73,7 +129,7 @@ def extract_summary_from_pdf(file_path):
     response = openai.Completion.create(
         engine="gpt-3.5-turbo-instruct",
         prompt=text,
-        max_tokens=200
+        max_tokens=2000
     )
 
     # 提取摘要
